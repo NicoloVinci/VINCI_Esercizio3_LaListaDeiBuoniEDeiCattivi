@@ -44,6 +44,12 @@ int main(void) {
         int kidsNumber;
         read(fileDescriptor[0], &kidsNumber, sizeof(int));
         close(fileDescriptor[0]);
+        int goodKids = 0;
+        for (int i = 1; i <= kidsNumber; i += 2) {
+            goodKids++;
+        }
+        write(fileDescriptor[1], &goodKids, sizeof(int));
+        close(fileDescriptor[1]);
     } else {
         pid_t Elf2;
         if ((Elf2 = fork()) == -1) {
