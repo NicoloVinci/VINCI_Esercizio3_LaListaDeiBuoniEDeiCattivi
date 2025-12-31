@@ -75,6 +75,12 @@ int main(void) {
             close(fileDescriptor2[1]);
             wait(NULL);
             wait(NULL);
+            int goodKids, badKids;
+            read(fileDescriptor[0], &goodKids, sizeof(int));
+            read(fileDescriptor2[0], &badKids, sizeof(int));
+            close(fileDescriptor[0]);
+            close(fileDescriptor2[0]);
+            printf("Quest'anno consegnerò %d regali e %d pezzi di carbone!\n", goodKids, badKids);
         }
     }
     return 0;
