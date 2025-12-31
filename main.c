@@ -26,7 +26,8 @@ int main(void) {
         } else {
             int valido;
             char c;
-            do {
+            while (1) {
+                valido = 1;
                 printf("Inserisci il numero di bambini: ");
                 int input;
                 if (scanf("%d", &input) != 1 || input < -1) {
@@ -38,7 +39,12 @@ int main(void) {
                         valido = 0;
                     }
                 } while (c != '\n' && c != EOF);
-            } while (!valido);
+                if (!valido) {
+                    printf("Numero non valido, inserisci un numero intero positivo.\n");
+                    continue;
+                }
+                break;
+            }
         }
     }
     return 0;
