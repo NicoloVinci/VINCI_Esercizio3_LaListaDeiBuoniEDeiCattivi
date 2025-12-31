@@ -1,83 +1,124 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <ctype.h>
+#include <string.h>
+#include <errno.h>
 
 int main(void) {
-    int valid, input;
-    char c;
+    int input;
     while (1) {
-        valid = 1;
+        char buf[64];
+        char *endptr;
         printf("Inserisci il numero di bambini: ");
-        if (scanf("%d", &input) != 1 || input < -1) {
-            valid = 0;
-        }
-        do {
-            c = getchar();
-            if (c != '\n' && c != ' ' && c != '\t') {
-                valid = 0;
-            }
-        } while (c != '\n' && c != EOF);
-        if (!valid) {
+        if (!fgets(buf, sizeof(buf), stdin)) {
             printf("Numero non valido, inserisci un numero intero positivo.\n");
             continue;
         }
+        if (buf[0] == '\n') {
+            printf("Numero non valido, inserisci un numero intero positivo.\n");
+            continue;
+        }
+        errno = 0;
+        long val = strtol(buf, &endptr, 10);
+        if (endptr == buf || errno == ERANGE || val <= 0) {
+            printf("Numero non valido, inserisci un numero intero positivo.\n");
+            continue;
+        }
+        while (*endptr == ' ' || *endptr == '\t') {
+            endptr++;
+        }
+        if (*endptr != '\n' && *endptr != '\0') {
+            printf("Numero non valido, inserisci un numero intero positivo.\n");
+            continue;
+        }
+        input = (int)val;
         break;
     }
+
     int fileDescriptor[2];
     if (pipe(fileDescriptor) == -1) {
         perror("pipe");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     int fileDescriptor2[2];
     if (pipe(fileDescriptor2) == -1) {
         perror("pipe");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     pid_t Elf1;
     if ((Elf1 = fork()) == -1) {
         perror("fork");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     if (Elf1 == 0) {
         close(fileDescriptor2[0]);
         close(fileDescriptor2[1]);
         int kidsNumber;
-        read(fileDescriptor[0], &kidsNumber, sizeof(int));
+        if (read(fileDescriptor[0], &kidsNumber, sizeof(int)) != sizeof(int)) {
+            perror("read from Santa");
+            exit(EXIT_FAILURE);
+        }
         close(fileDescriptor[0]);
         int goodKids = 0;
         for (int i = 1; i <= kidsNumber; i += 2) {
             goodKids++;
         }
-        write(fileDescriptor[1], &goodKids, sizeof(int));
+        if (write(fileDescriptor[1], &goodKids, sizeof(int)) != sizeof(int)) {
+            perror("write to Santa");
+            exit(EXIT_FAILURE);
+        }
         close(fileDescriptor[1]);
+        exit(EXIT_SUCCESS);
     } else {
         pid_t Elf2;
         if ((Elf2 = fork()) == -1) {
             perror("fork");
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
         if (Elf2 == 0) {
             close(fileDescriptor[0]);
             close(fileDescriptor[1]);
             int kidsNumber;
-            read(fileDescriptor2[0], &kidsNumber, sizeof(int));
+            if (read(fileDescriptor2[0], &kidsNumber, sizeof(int)) != sizeof(int)) {
+                perror("read from Santa");
+                exit(EXIT_FAILURE);
+            }
             close(fileDescriptor2[0]);
             int badKids = 0;
             for (int i = 2; i <= kidsNumber; i += 2) {
                 badKids++;
             }
-            write(fileDescriptor2[1], &badKids, sizeof(int));
+            if (write(fileDescriptor2[1], &badKids, sizeof(int)) != sizeof(int)) {
+                perror("write to Santa");
+                exit(EXIT_FAILURE);
+            }
             close(fileDescriptor2[1]);
+            exit(EXIT_SUCCESS);
         } else {
-            write(fileDescriptor[1], &input, sizeof(int));
-            write(fileDescriptor2[1], &input, sizeof(int));
+            if (write(fileDescriptor[1], &input, sizeof(int)) != sizeof(int)) {
+                perror("write to Elf1");
+                exit(EXIT_FAILURE);
+            }
+            if (write(fileDescriptor2[1], &input, sizeof(int)) != sizeof(int)) {
+                perror("write to Elf2");
+                exit(EXIT_FAILURE);
+            }
             close(fileDescriptor[1]);
             close(fileDescriptor2[1]);
             wait(NULL);
             wait(NULL);
             int goodKids, badKids;
-            read(fileDescriptor[0], &goodKids, sizeof(int));
-            read(fileDescriptor2[0], &badKids, sizeof(int));
+            if (read(fileDescriptor[0], &goodKids, sizeof(int)) != sizeof(int)) {
+                perror("read from Elf1");
+                exit(EXIT_FAILURE);
+            }
+            if (read(fileDescriptor2[0], &badKids, sizeof(int)) != sizeof(int)) {
+                perror("read from Elf2");
+                exit(EXIT_FAILURE);
+            }
             close(fileDescriptor[0]);
             close(fileDescriptor2[0]);
             printf("Quest'anno consegnerò %d regali e %d pezzi di carbone!\n", goodKids, badKids);
