@@ -3,6 +3,27 @@
 #include <unistd.h>
 
 int main(void) {
+    int valido;
+    char c;
+    while (1) {
+        valido = 1;
+        printf("Inserisci il numero di bambini: ");
+        int input;
+        if (scanf("%d", &input) != 1 || input < -1) {
+            valido = 0;
+        }
+        do {
+            c = getchar();
+            if (c != '\n' && c != ' ' && c != '\t') {
+                valido = 0;
+            }
+        } while (c != '\n' && c != EOF);
+        if (!valido) {
+            printf("Numero non valido, inserisci un numero intero positivo.\n");
+            continue;
+        }
+        break;
+    }
     int fileDescriptor[2];
     if (pipe(fileDescriptor) == -1) {
         perror("pipe");
@@ -24,27 +45,7 @@ int main(void) {
         if (Elf2 == 0) {
 
         } else {
-            int valido;
-            char c;
-            while (1) {
-                valido = 1;
-                printf("Inserisci il numero di bambini: ");
-                int input;
-                if (scanf("%d", &input) != 1 || input < -1) {
-                    valido = 0;
-                }
-                do {
-                    c = getchar();
-                    if (c != '\n' && c != ' ' && c != '\t') {
-                        valido = 0;
-                    }
-                } while (c != '\n' && c != EOF);
-                if (!valido) {
-                    printf("Numero non valido, inserisci un numero intero positivo.\n");
-                    continue;
-                }
-                break;
-            }
+
         }
     }
     return 0;
