@@ -62,6 +62,12 @@ int main(void) {
             int kidsNumber;
             read(fileDescriptor2[0], &kidsNumber, sizeof(int));
             close(fileDescriptor2[0]);
+            int badKids = 0;
+            for (int i = 2; i <= kidsNumber; i += 2) {
+                badKids++;
+            }
+            write(fileDescriptor2[1], &badKids, sizeof(int));
+            close(fileDescriptor2[1]);
         } else {
             write(fileDescriptor[1], &input, sizeof(int));
             write(fileDescriptor2[1], &input, sizeof(int));
