@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <ctype.h>
 #include <string.h>
 #include <errno.h>
 
@@ -48,12 +47,12 @@ int main(void) {
         perror("pipe");
         exit(EXIT_FAILURE);
     }
-    pid_t Elf1;
-    if ((Elf1 = fork()) == -1) {
+    pid_t elf1;
+    if ((elf1 = fork()) == -1) {
         perror("fork");
         exit(EXIT_FAILURE);
     }
-    if (Elf1 == 0) {
+    if (elf1 == 0) {
         close(fileDescriptor2[0]);
         close(fileDescriptor2[1]);
         int kidsNumber;
@@ -73,12 +72,12 @@ int main(void) {
         close(fileDescriptor[1]);
         exit(EXIT_SUCCESS);
     } else {
-        pid_t Elf2;
-        if ((Elf2 = fork()) == -1) {
+        pid_t elf2;
+        if ((elf2 = fork()) == -1) {
             perror("fork");
             exit(EXIT_FAILURE);
         }
-        if (Elf2 == 0) {
+        if (elf2 == 0) {
             close(fileDescriptor[0]);
             close(fileDescriptor[1]);
             int kidsNumber;
@@ -99,11 +98,11 @@ int main(void) {
             exit(EXIT_SUCCESS);
         } else {
             if (write(fileDescriptor[1], &input, sizeof(int)) != sizeof(int)) {
-                perror("write to Elf1");
+                perror("write to elf1");
                 exit(EXIT_FAILURE);
             }
             if (write(fileDescriptor2[1], &input, sizeof(int)) != sizeof(int)) {
-                perror("write to Elf2");
+                perror("write to elf2");
                 exit(EXIT_FAILURE);
             }
             close(fileDescriptor[1]);
@@ -112,11 +111,11 @@ int main(void) {
             wait(NULL);
             int goodKids, badKids;
             if (read(fileDescriptor[0], &goodKids, sizeof(int)) != sizeof(int)) {
-                perror("read from Elf1");
+                perror("read from elf1");
                 exit(EXIT_FAILURE);
             }
             if (read(fileDescriptor2[0], &badKids, sizeof(int)) != sizeof(int)) {
-                perror("read from Elf2");
+                perror("read from elf2");
                 exit(EXIT_FAILURE);
             }
             close(fileDescriptor[0]);
