@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <string.h>
 #include <errno.h>
+#include <limits.h>
 
 int main(void) {
     int input;
@@ -13,8 +13,9 @@ int main(void) {
         char *endptr;
         printf("Inserisci il numero di bambini: ");
         if (!fgets(buf, sizeof(buf), stdin)) {
-            printf("Numero non valido, inserisci un numero intero positivo.\n");
-            continue;
+            printf("Errore di input, impossibile leggere da stdin.\n");
+            perror("fgets");
+            exit(EXIT_FAILURE);
         }
         if (buf[0] == '\n') {
             printf("Numero non valido, inserisci un numero intero positivo.\n");
@@ -31,6 +32,10 @@ int main(void) {
         }
         if (*endptr != '\n' && *endptr != '\0') {
             printf("Numero non valido, inserisci un numero intero positivo.\n");
+            continue;
+        }
+        if (val > INT_MAX) {
+            printf("Numero troppo grande, inserisci un numero intero positivo minore di %d.\n", INT_MAX);
             continue;
         }
         input = (int)val;
