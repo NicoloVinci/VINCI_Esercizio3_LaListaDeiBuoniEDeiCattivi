@@ -7,41 +7,6 @@
 #include <limits.h>
 
 int main(void) {
-    int input;
-    while (1) {
-        char buf[64];
-        char *endptr;
-        printf("Inserisci il numero di bambini: ");
-        if (!fgets(buf, sizeof(buf), stdin)) {
-            printf("Errore di input, impossibile leggere da stdin.\n");
-            perror("fgets");
-            exit(EXIT_FAILURE);
-        }
-        if (buf[0] == '\n') {
-            printf("Numero non valido, inserisci un numero intero positivo.\n");
-            continue;
-        }
-        errno = 0;
-        long val = strtol(buf, &endptr, 10);
-        if (endptr == buf || errno == ERANGE || val <= 0) {
-            printf("Numero non valido, inserisci un numero intero positivo.\n");
-            continue;
-        }
-        while (*endptr == ' ' || *endptr == '\t') {
-            endptr++;
-        }
-        if (*endptr != '\n' && *endptr != '\0') {
-            printf("Numero non valido, inserisci un numero intero positivo.\n");
-            continue;
-        }
-        if (val > INT_MAX) {
-            printf("Numero troppo grande, inserisci un numero intero positivo minore di %d.\n", INT_MAX);
-            continue;
-        }
-        input = (int)val;
-        break;
-    }
-
     int fileDescriptor[2];
     if (pipe(fileDescriptor) == -1) {
         perror("pipe");
@@ -70,6 +35,40 @@ int main(void) {
         close(fileDescriptor[1]);
         exit(EXIT_SUCCESS);
     } else {
+		int input;
+    	while (1) {
+        	char buf[64];
+        	char *endptr;
+        	printf("Inserisci il numero di bambini: ");
+        	if (!fgets(buf, sizeof(buf), stdin)) {
+            	printf("Errore di input, impossibile leggere da stdin.\n");
+            	perror("fgets");
+            	exit(EXIT_FAILURE);
+       		}
+        	if (buf[0] == '\n') {
+            	printf("Numero non valido, inserisci un numero intero positivo.\n");
+            	continue;
+        	}
+        	errno = 0;
+        	long val = strtol(buf, &endptr, 10);
+        	if (endptr == buf || errno == ERANGE || val <= 0) {
+            	printf("Numero non valido, inserisci un numero intero positivo.\n");
+            	continue;
+        	}
+        	while (*endptr == ' ' || *endptr == '\t') {
+            	endptr++;
+        	}
+        	if (*endptr != '\n' && *endptr != '\0') {
+           		printf("Numero non valido, inserisci un numero intero positivo.\n");
+            	continue;
+        	}
+        	if (val > INT_MAX) {
+            	printf("Numero troppo grande, inserisci un numero intero positivo minore di %d.\n", INT_MAX);
+            	continue;
+        	}
+        	input = (int)val;
+        	break;
+    	}
 		int fileDescriptor2[2];
     	if (pipe(fileDescriptor2) == -1) {
         	perror("pipe");
@@ -110,8 +109,8 @@ int main(void) {
             }
             close(fileDescriptor[1]);
             close(fileDescriptor2[1]);
-            wait(NULL);
-            wait(NULL);
+            wait(NULL); //aspetta che il processo più corto finisca
+            wait(NULL); //ne metto due così li aspetta tutti e due, non sapendo quale finirà prima
             int goodKids, badKids;
             if (read(fileDescriptor[0], &goodKids, sizeof(int)) != sizeof(int)) {
                 perror("read from elf1");
