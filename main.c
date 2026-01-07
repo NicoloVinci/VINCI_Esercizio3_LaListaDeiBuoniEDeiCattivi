@@ -47,19 +47,12 @@ int main(void) {
         perror("pipe");
         exit(EXIT_FAILURE);
     }
-    int fileDescriptor2[2];
-    if (pipe(fileDescriptor2) == -1) {
-        perror("pipe");
-        exit(EXIT_FAILURE);
-    }
     pid_t elf1;
     if ((elf1 = fork()) == -1) {
         perror("fork");
         exit(EXIT_FAILURE);
     }
     if (elf1 == 0) {
-        close(fileDescriptor2[0]);
-        close(fileDescriptor2[1]);
         int kidsNumber;
         if (read(fileDescriptor[0], &kidsNumber, sizeof(int)) != sizeof(int)) {
             perror("read from Santa");
@@ -77,6 +70,11 @@ int main(void) {
         close(fileDescriptor[1]);
         exit(EXIT_SUCCESS);
     } else {
+		int fileDescriptor2[2];
+    	if (pipe(fileDescriptor2) == -1) {
+        	perror("pipe");
+        	exit(EXIT_FAILURE);
+    	}
         pid_t elf2;
         if ((elf2 = fork()) == -1) {
             perror("fork");
